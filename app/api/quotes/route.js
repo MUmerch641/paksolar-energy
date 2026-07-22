@@ -7,8 +7,14 @@ export async function POST(req) {
     // 1. System instruction prompt jo bot ke behavior ko control karega
     const systemPrompt = "You are 'Pak Solar AI Support', a professional, friendly, and helpful AI assistant for Pak Solar Energy. Answer user queries about solar panels, systems (3KW, 5KW, 10KW, etc.), and estimation in Roman Urdu. Keep answers short. Ask for Name, Phone Number, and City if they need a quote.";
 
-    // 🔴 TEST KEY: Agar aapki apni key kaam kare to yahan replace kar sakti hain
-    const API_KEY = "AIzaSyA_Z9D3u2M-x_vR8N-X8jX7Wn9v5r8Q_yM";
+    const API_KEY = process.env.GEMINI_API_KEY;
+
+    if (!API_KEY) {
+      return NextResponse.json(
+        { error: "GEMINI_API_KEY is not configured." },
+        { status: 503 }
+      );
+    }
 
     // 2. Chat history ko Gemini ke standard formats mein convert karna
     const formattedContents = messages.map((m) => ({

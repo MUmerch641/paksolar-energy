@@ -202,19 +202,20 @@ export default function Chatbot() {
     const message = rawMessage.trim();
     if (!message || sending) return;
 
+    const userMessage = { id: createId("user"), role: "user", content: message };
+    const conversation = [...messages, userMessage];
+
     setInput("");
     setSending(true);
-
-    setMessages((current) => [
-      ...current,
-      { id: createId("user"), role: "user", content: message },
-    ]);
+    setMessages(conversation);
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          messages: conversation.map(({ role, content }) => ({ role, content })),
+        }),
       });
 
       const payload = await response.json();
@@ -223,8 +224,8 @@ export default function Chatbot() {
         throw new Error(payload?.error || "Chat request failed.");
       }
 
-      setMessages((current) => [
-        ...current,
+      setMessages([
+        ...conversation,
         {
           id: createId("assistant"),
           role: "assistant",
@@ -236,13 +237,13 @@ export default function Chatbot() {
       ]);
     } catch (error) {
       console.error(error);
-      setMessages((current) => [
-        ...current,
+      setMessages([
+        ...conversation,
         {
           id: createId("assistant"),
           role: "assistant",
           content: [
-            "Network issue ki wajah se response nahi mil saka.",
+            error instanceof Error ? error.message : "Chat response nahi mil saka.",
             "",
             "Call ya WhatsApp par rabta karein:",
             "📞 +92 300 0000000",
